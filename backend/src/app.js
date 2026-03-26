@@ -31,7 +31,23 @@ const upload = createUploadMiddleware({
 });
 const emailService = createEmailService(db);
 
-app.use(cors({ origin: env.CORS_ORIGIN === "*" ? true : env.CORS_ORIGIN }));
+const originValue = process.env.CORS_ORIGIN;
+
+app.use(
+  cors({
+    // If it's "*", allow everything.
+    // If it contains a comma, split it into an array.
+    // Otherwise, just use the string.
+    origin:
+      originValue === "*"
+        ? true
+        : originValue?.includes(",")
+          ? originValue.split(",")
+          : originValue,
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 app.use("/uploads", express.static(env.UPLOADS_DIR));
 
