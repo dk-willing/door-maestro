@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #C8A84E;
+  --color-gold-light: #E8D48B;
+  --color-gold-dark: #A68A3E;
+  --color-dark: #0A0A0A;
+  --color-dark-card: #141414;
+  --color-dark-surface: #1A1A1A;
+  --color-dark-border: #2A2A2A;
+  --color-dark-text: #E0E0E0;
+  --color-dark-muted: #888888;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: var(--color-dark);
+    color: var(--color-dark-text);
+    font-family: var(--font-sans);
+  }
+  #root {
+    min-height: 100vh;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--color-dark-border); border-radius: 3px; }
+}
+
+@layer components {
+  .glass {
+    background: rgba(20, 20, 20, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(200, 168, 78, 0.1);
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, var(--color-gold), var(--color-gold-dark));
+    color: #000;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-gold:hover {
+    background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(200, 168, 78, 0.3);
+  }
+  .btn-outline {
+    border: 1px solid var(--color-gold);
+    color: var(--color-gold);
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s;
+    cursor: pointer;
+    background: transparent;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+  .btn-outline:hover {
+    background: rgba(200, 168, 78, 0.1);
+    transform: translateY(-1px);
+  }
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(200, 168, 78, 0.15);
+    border-color: rgba(200, 168, 78, 0.3);
+  }
+  .skeleton {
+    background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
