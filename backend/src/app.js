@@ -1,11 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
 
 const env = require("./config/env");
 const { initDb } = require("./db");
 const { createAuthMiddleware } = require("./middleware/auth");
-const { createUploadMiddleware } = require("./middleware/upload");
+const { upload } = require("./middleware/upload");
 const { createEmailService } = require("./services/emailService");
 const { createAuthRoutes } = require("./routes/authRoutes");
 const { createSettingsRoutes } = require("./routes/settingsRoutes");
@@ -13,31 +12,26 @@ const { createProductsRoutes } = require("./routes/productsRoutes");
 const { createOrdersRoutes } = require("./routes/ordersRoutes");
 const { createStatsRoutes } = require("./routes/statsRoutes");
 
-if (!fs.existsSync(env.UPLOADS_DIR)) {
-  fs.mkdirSync(env.UPLOADS_DIR, { recursive: true });
-}
+const app = express();
 
-const db = initDb({
-  dbPath: env.DB_PATH,
+// Connect to MongoDB
+initDb({
+  mongoUri: env.MONGO_URI,
   defaultAdminUsername: env.DEFAULT_ADMIN_USERNAME,
   defaultAdminPassword: env.DEFAULT_ADMIN_PASSWORD,
+}).catch((err) => {
+  console.error("Failed to connect to MongoDB:", err);
+  process.exit(1);
 });
 
-const app = express();
 const authMiddleware = createAuthMiddleware(env.JWT_SECRET);
-const upload = createUploadMiddleware({
-  uploadsDir: env.UPLOADS_DIR,
-  maxUploadMb: env.MAX_UPLOAD_MB,
-});
-const emailService = createEmailService(db);
+
+const emailService = createEmailService();
 
 const originValue = process.env.CORS_ORIGIN;
 
 app.use(
   cors({
-    // If it's "*", allow everything.
-    // If it contains a comma, split it into an array.
-    // Otherwise, just use the string.
     origin:
       originValue === "*"
         ? true
@@ -49,21 +43,17 @@ app.use(
 );
 
 app.use(express.json());
-app.use("/uploads", express.static(env.UPLOADS_DIR));
 
 app.use(
   "/api/auth",
-  createAuthRoutes({ db, authMiddleware, jwtSecret: env.JWT_SECRET }),
+  createAuthRoutes({ authMiddleware, jwtSecret: env.JWT_SECRET }),
 );
 app.use(
   "/api/settings",
-  createSettingsRoutes({ db, authMiddleware, emailService }),
+  createSettingsRoutes({ authMiddleware, emailService }),
 );
-app.use("/api/products", createProductsRoutes({ db, authMiddleware, upload }));
-app.use(
-  "/api/orders",
-  createOrdersRoutes({ db, authMiddleware, emailService }),
-);
-app.use("/api/stats", createStatsRoutes({ db, authMiddleware }));
+app.use("/api/products", createProductsRoutes({ authMiddleware, upload }));
+app.use("/api/orders", createOrdersRoutes({ authMiddleware, emailService }));
+app.use("/api/stats", createStatsRoutes({ authMiddleware }));
 
 module.exports = { app, env };

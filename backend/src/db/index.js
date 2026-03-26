@@ -1,60 +1,77 @@
-const Database = require("better-sqlite3");
-const { v4: uuidv4 } = require("uuid");
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-function initDb({ dbPath, defaultAdminUsername, defaultAdminPassword }) {
-  const db = new Database(dbPath);
-  db.pragma("journal_mode = WAL");
+// ─── Schemas ────────────────────────────────────────────────────────────────
 
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      price REAL NOT NULL,
-      description TEXT,
-      material TEXT,
-      size TEXT,
-      country TEXT,
-      stock INTEGER DEFAULT 0,
-      images TEXT DEFAULT '[]',
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS orders (
-      id TEXT PRIMARY KEY,
-      product_id TEXT NOT NULL,
-      product_name TEXT,
-      quantity INTEGER NOT NULL,
-      customer_name TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      note TEXT,
-      status TEXT DEFAULT 'pending',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (product_id) REFERENCES products(id)
-    );
-    CREATE TABLE IF NOT EXISTS admins (
-      id TEXT PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-  `);
+const productSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    description: String,
+    material: String,
+    size: String,
+    country: String,
+    stock: { type: Number, default: 0 },
+    images: { type: [String], default: [] },
+  },
+  { timestamps: { createdAt: "created_at", updatedAt: false } },
+);
 
-  const existingAdmin = db.prepare("SELECT id FROM admins LIMIT 1").get();
+const orderSchema = new mongoose.Schema(
+  {
+    product_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
+    product_name: String,
+    quantity: { type: Number, required: true },
+    customer_name: { type: String, required: true },
+    phone: { type: String, required: true },
+    note: String,
+    status: { type: String, default: "pending" },
+  },
+  { timestamps: { createdAt: "created_at", updatedAt: false } },
+);
+
+const adminSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+  },
+  { timestamps: { createdAt: "created_at", updatedAt: false } },
+);
+
+const settingSchema = new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  value: { type: String, required: true },
+});
+
+// ─── Models ─────────────────────────────────────────────────────────────────
+
+const Product = mongoose.model("Product", productSchema);
+const Order = mongoose.model("Order", orderSchema);
+const Admin = mongoose.model("Admin", adminSchema);
+const Setting = mongoose.model("Setting", settingSchema);
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+
+async function initDb({
+  mongoUri,
+  defaultAdminUsername,
+  defaultAdminPassword,
+}) {
+  await mongoose.connect(mongoUri);
+  console.log("Connected to MongoDB");
+
+  const existingAdmin = await Admin.findOne();
   if (!existingAdmin) {
-    const hash = bcrypt.hashSync(defaultAdminPassword, 10);
-    db.prepare(
-      "INSERT INTO admins (id, username, password) VALUES (?, ?, ?)",
-    ).run(uuidv4(), defaultAdminUsername, hash);
+    const hash = await bcrypt.hash(defaultAdminPassword, 10);
+    await Admin.create({ username: defaultAdminUsername, password: hash });
     console.log(
       `Default admin created - username: ${defaultAdminUsername}, password: ${defaultAdminPassword}`,
     );
   }
-
-  return db;
 }
 
-module.exports = { initDb };
+module.exports = { initDb, Product, Order, Admin, Setting };

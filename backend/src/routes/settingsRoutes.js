@@ -1,4 +1,5 @@
 const express = require("express");
+const { Setting } = require("../db");
 
 const DEFAULT_EMAIL_SETTINGS = {
   enabled: false,
@@ -10,24 +11,34 @@ const DEFAULT_EMAIL_SETTINGS = {
   recipientEmail: "",
 };
 
-function createSettingsRoutes({ db, authMiddleware, emailService }) {
+function createSettingsRoutes({ authMiddleware, emailService }) {
   const router = express.Router();
 
-  router.get("/email", authMiddleware, (req, res) => {
-    const row = db
-      .prepare("SELECT value FROM settings WHERE key = ?")
-      .get("email_notifications");
-    res.json(row ? JSON.parse(row.value) : DEFAULT_EMAIL_SETTINGS);
+  // GET email settings
+  router.get("/email", authMiddleware, async (req, res) => {
+    try {
+      const setting = await Setting.findOne({ key: "email_notifications" });
+      res.json(setting ? JSON.parse(setting.value) : DEFAULT_EMAIL_SETTINGS);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch email settings" });
+    }
   });
 
-  router.put("/email", authMiddleware, (req, res) => {
-    const value = JSON.stringify(req.body);
-    db.prepare(
-      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?",
-    ).run("email_notifications", value, value);
-    res.json({ ok: true });
+  // PUT save email settings
+  router.put("/email", authMiddleware, async (req, res) => {
+    try {
+      await Setting.findOneAndUpdate(
+        { key: "email_notifications" },
+        { value: JSON.stringify(req.body) },
+        { upsert: true, new: true },
+      );
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to save email settings" });
+    }
   });
 
+  // POST test email
   router.post("/email/test", authMiddleware, async (req, res) => {
     try {
       await emailService.sendTestEmail(req.body);

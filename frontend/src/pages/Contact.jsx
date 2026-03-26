@@ -55,7 +55,7 @@ export default function Contact() {
                 e.preventDefault()
                 const fd = new FormData(e.target)
                 const msg = encodeURIComponent(`Hi! My name is ${fd.get('name')}.\n\n${fd.get('message')}\n\nPhone: ${fd.get('phone')}`)
-                window.open(`https://wa.me/15551234567?text=${msg}`, '_blank')
+                window.open(`https://wa.me/233554391919?text=${msg}`, '_blank')
               }}
               className="flex flex-col gap-4"
             >

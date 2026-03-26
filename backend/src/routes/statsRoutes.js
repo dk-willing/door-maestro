@@ -1,26 +1,42 @@
 const express = require("express");
+const { Product, Order } = require("../db");
 
-function createStatsRoutes({ db, authMiddleware }) {
+function createStatsRoutes({ authMiddleware }) {
   const router = express.Router();
 
-  router.get("/", authMiddleware, (req, res) => {
-    const totalProducts = db
-      .prepare("SELECT COUNT(*) as c FROM products")
-      .get().c;
-    const totalOrders = db.prepare("SELECT COUNT(*) as c FROM orders").get().c;
-    const totalStock = db
-      .prepare("SELECT COALESCE(SUM(stock),0) as c FROM products")
-      .get().c;
-    const recentOrders = db
-      .prepare(
-        `
-        SELECT DATE(created_at) as date, COUNT(*) as count
-        FROM orders GROUP BY DATE(created_at) ORDER BY date DESC LIMIT 30
-      `,
-      )
-      .all();
+  router.get("/", authMiddleware, async (req, res) => {
+    try {
+      const [totalProducts, totalOrders, stockResult, recentOrders] =
+        await Promise.all([
+          Product.countDocuments(),
+          Order.countDocuments(),
+          Product.aggregate([
+            { $group: { _id: null, total: { $sum: "$stock" } } },
+          ]),
+          Order.aggregate([
+            {
+              $group: {
+                _id: {
+                  $dateToString: { format: "%Y-%m-%d", date: "$created_at" },
+                },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { _id: -1 } },
+            { $limit: 30 },
+            { $project: { _id: 0, date: "$_id", count: 1 } },
+          ]),
+        ]);
 
-    res.json({ totalProducts, totalOrders, totalStock, recentOrders });
+      res.json({
+        totalProducts,
+        totalOrders,
+        totalStock: stockResult[0]?.total || 0,
+        recentOrders,
+      });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
   });
 
   return router;

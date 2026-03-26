@@ -1,16 +1,23 @@
+// upload.js
 const multer = require("multer");
+const cloudinary = require("../config/cloudinary"); // your v2 config
 
-function createUploadMiddleware({ uploadsDir, maxUploadMb }) {
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
-    filename: (req, file, cb) =>
-      cb(null, `${Date.now()}-${file.originalname.replace(/\s/g, "_")}`),
-  });
+const storage = multer.memoryStorage(); // buffer the file in memory first
 
-  return multer({
-    storage,
-    limits: { fileSize: maxUploadMb * 1024 * 1024 },
+const upload = multer({ storage });
+
+// Helper to stream a buffer to Cloudinary
+function uploadToCloudinary(buffer, options = {}) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "door-maestro", ...options },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      },
+    );
+    stream.end(buffer);
   });
 }
 
-module.exports = { createUploadMiddleware };
+module.exports = { upload, uploadToCloudinary };

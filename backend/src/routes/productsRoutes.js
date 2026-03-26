@@ -1,100 +1,129 @@
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
+const { Product } = require("../db");
+const { uploadToCloudinary } = require("../middleware/upload");
 
-function createProductsRoutes({ db, authMiddleware, upload }) {
+function createProductsRoutes({ authMiddleware, upload }) {
   const router = express.Router();
 
-  router.get("/", (req, res) => {
-    const products = db
-      .prepare("SELECT * FROM products ORDER BY created_at DESC")
-      .all();
-    res.json(
-      products.map((product) => ({
-        ...product,
-        images: JSON.parse(product.images),
-      })),
-    );
-  });
-
-  router.get("/:id", (req, res) => {
-    const product = db
-      .prepare("SELECT * FROM products WHERE id = ?")
-      .get(req.params.id);
-    if (!product) {
-      return res.status(404).json({ error: "Not found" });
+  // GET all products
+  router.get("/", async (req, res) => {
+    try {
+      const products = await Product.find().sort({ created_at: -1 });
+      res.json(products);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch products" });
     }
-
-    res.json({ ...product, images: JSON.parse(product.images) });
   });
 
-  router.post("/", authMiddleware, upload.array("images", 10), (req, res) => {
-    const { name, price, description, material, size, country, stock } =
-      req.body;
-    const id = uuidv4();
-    const images = (req.files || []).map((file) => `/uploads/${file.filename}`);
-
-    db.prepare(
-      "INSERT INTO products (id, name, price, description, material, size, country, stock, images) VALUES (?,?,?,?,?,?,?,?,?)",
-    ).run(
-      id,
-      name,
-      parseFloat(price),
-      description || "",
-      material || "",
-      size || "",
-      country || "",
-      parseInt(stock, 10) || 0,
-      JSON.stringify(images),
-    );
-
-    res.json({ id });
+  // GET single product
+  router.get("/:id", async (req, res) => {
+    try {
+      const product = await Product.findById(req.params.id);
+      if (!product) return res.status(404).json({ error: "Not found" });
+      res.json(product);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch product" });
+    }
   });
 
-  router.put("/:id", authMiddleware, upload.array("images", 10), (req, res) => {
-    const {
-      name,
-      price,
-      description,
-      material,
-      size,
-      country,
-      stock,
-      existingImages,
-    } = req.body;
-    const existing = existingImages ? JSON.parse(existingImages) : [];
-    const newImages = (req.files || []).map(
-      (file) => `/uploads/${file.filename}`,
-    );
-    const images = [...existing, ...newImages];
+  // POST create product
+  router.post(
+    "/",
+    authMiddleware,
+    upload.array("images", 10),
+    async (req, res) => {
+      try {
+        const { name, price, description, material, size, country, stock } =
+          req.body;
 
-    db.prepare(
-      "UPDATE products SET name=?, price=?, description=?, material=?, size=?, country=?, stock=?, images=? WHERE id=?",
-    ).run(
-      name,
-      parseFloat(price),
-      description || "",
-      material || "",
-      size || "",
-      country || "",
-      parseInt(stock, 10) || 0,
-      JSON.stringify(images),
-      req.params.id,
-    );
+        const imageUrls = await Promise.all(
+          (req.files || []).map((file) => uploadToCloudinary(file.buffer)),
+        );
 
-    res.json({ ok: true });
+        const product = await Product.create({
+          name,
+          price: parseFloat(price),
+          description: description || "",
+          material: material || "",
+          size: size || "",
+          country: country || "",
+          stock: parseInt(stock, 10) || 0,
+          images: imageUrls.map((r) => r.secure_url),
+        });
+
+        res.json({ id: product._id });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to create product" });
+      }
+    },
+  );
+
+  // PUT update product
+  router.put(
+    "/:id",
+    authMiddleware,
+    upload.array("images", 10),
+    async (req, res) => {
+      try {
+        const {
+          name,
+          price,
+          description,
+          material,
+          size,
+          country,
+          stock,
+          existingImages,
+        } = req.body;
+
+        const existing = existingImages ? JSON.parse(existingImages) : [];
+
+        const newImageUrls = await Promise.all(
+          (req.files || []).map((file) => uploadToCloudinary(file.buffer)),
+        );
+
+        const images = [...existing, ...newImageUrls.map((r) => r.secure_url)];
+
+        await Product.findByIdAndUpdate(req.params.id, {
+          name,
+          price: parseFloat(price),
+          description: description || "",
+          material: material || "",
+          size: size || "",
+          country: country || "",
+          stock: parseInt(stock, 10) || 0,
+          images,
+        });
+
+        res.json({ ok: true });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to update product" });
+      }
+    },
+  );
+
+  // PUT update stock only
+  router.put("/:id/stock", authMiddleware, async (req, res) => {
+    try {
+      await Product.findByIdAndUpdate(req.params.id, {
+        stock: parseInt(req.body.stock, 10),
+      });
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to update stock" });
+    }
   });
 
-  router.put("/:id/stock", authMiddleware, (req, res) => {
-    db.prepare("UPDATE products SET stock = ? WHERE id = ?").run(
-      parseInt(req.body.stock, 10),
-      req.params.id,
-    );
-    res.json({ ok: true });
-  });
-
-  router.delete("/:id", authMiddleware, (req, res) => {
-    db.prepare("DELETE FROM products WHERE id = ?").run(req.params.id);
-    res.json({ ok: true });
+  // DELETE product
+  router.delete("/:id", authMiddleware, async (req, res) => {
+    try {
+      await Product.findByIdAndDelete(req.params.id);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete product" });
+    }
   });
 
   return router;

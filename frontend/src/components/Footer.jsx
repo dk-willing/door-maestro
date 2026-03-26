@@ -33,7 +33,7 @@ export default function Footer() {
               <FaPhone className="text-gold" /> +233 (554) 391-919
             </div>
             <div className="flex items-center gap-2">
-              <FaMapMarkerAlt className="text-gold" /> 123 Security Ave, New York
+              <FaMapMarkerAlt className="text-gold" /> Odorkor-Terrazo, Accra, Ghana
             </div>
             <div className="flex gap-3 mt-2">
               <a href="https://wa.me/233554391919" target="_blank" rel="noreferrer"

@@ -1,58 +1,63 @@
 const express = require("express");
-const { v4: uuidv4 } = require("uuid");
+const { Order, Product } = require("../db");
 
-function createOrdersRoutes({ db, authMiddleware, emailService }) {
+function createOrdersRoutes({ authMiddleware, emailService }) {
   const router = express.Router();
 
-  router.get("/", authMiddleware, (req, res) => {
-    const orders = db
-      .prepare("SELECT * FROM orders ORDER BY created_at DESC")
-      .all();
-    res.json(orders);
+  // GET all orders
+  router.get("/", authMiddleware, async (req, res) => {
+    try {
+      const orders = await Order.find().sort({ created_at: -1 });
+      res.json(orders);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch orders" });
+    }
   });
 
-  router.post("/", (req, res) => {
-    const { product_id, product_name, quantity, customer_name, phone, note } =
-      req.body;
-    const id = uuidv4();
+  // POST create order
+  router.post("/", async (req, res) => {
+    try {
+      const { product_id, product_name, quantity, customer_name, phone, note } =
+        req.body;
 
-    db.prepare(
-      "INSERT INTO orders (id, product_id, product_name, quantity, customer_name, phone, note) VALUES (?,?,?,?,?,?,?)",
-    ).run(
-      id,
-      product_id,
-      product_name || "",
-      quantity,
-      customer_name,
-      phone,
-      note || "",
-    );
+      const order = await Order.create({
+        product_id,
+        product_name: product_name || "",
+        quantity,
+        customer_name,
+        phone,
+        note: note || "",
+      });
 
-    res.json({ id });
+      res.json({ id: order._id });
 
-    const product = db
-      .prepare("SELECT * FROM products WHERE id = ?")
-      .get(product_id);
-    emailService
-      .sendOrderNotification(
-        {
-          product_name: product_name || "",
-          quantity,
-          customer_name,
-          phone,
-          note: note || "",
-        },
-        product,
-      )
-      .catch(() => {});
+      // Send email notification after responding
+      const product = await Product.findById(product_id);
+      emailService
+        .sendOrderNotification(
+          {
+            product_name: product_name || "",
+            quantity,
+            customer_name,
+            phone,
+            note: note || "",
+          },
+          product,
+        )
+        .catch(() => {});
+    } catch (err) {
+      res.status(500).json({ error: "Failed to create order" });
+    }
   });
 
-  router.put("/:id/status", authMiddleware, (req, res) => {
-    db.prepare("UPDATE orders SET status = ? WHERE id = ?").run(
-      req.body.status,
-      req.params.id,
-    );
-    res.json({ ok: true });
+  // PUT update order status
+  router.put("/:id/status", authMiddleware, async (req, res) => {
+    try {
+      await Order.findByIdAndUpdate(req.params.id, { status: req.body.status });
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to update order status" });
+    }
   });
 
   return router;
