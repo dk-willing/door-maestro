@@ -34,7 +34,7 @@ export default function ProductCard({ product }) {
           {product.size && <span> &middot; {product.size}</span>}
         </p>
         <div className="flex items-center justify-between">
-          <span className="text-gold font-bold text-xl">${Number(product.price).toLocaleString()}</span>
+          <span className="text-gold font-bold text-xl">₵{Number(product.price).toLocaleString()}</span>
           <Link
             to={`/doors/${product._id}`}
             className="btn-outline !py-2 !px-4 text-sm"
