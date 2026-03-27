@@ -40,10 +40,10 @@ export default function Footer() {
                 className="w-9 h-9 rounded-full bg-dark-surface border border-dark-border flex items-center justify-center text-dark-muted hover:text-gold hover:border-gold transition-all">
                 <FaWhatsapp />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-dark-surface border border-dark-border flex items-center justify-center text-dark-muted hover:text-gold hover:border-gold transition-all">
+              <a href="https://www.instagram.com/buildwithdave.gh?igsh=MXRxdm5qZzgwZzBiMg%3D%3D&utm_source=qr" target='_blank' className="w-9 h-9 rounded-full bg-dark-surface border border-dark-border flex items-center justify-center text-dark-muted hover:text-gold hover:border-gold transition-all">
                 <FaInstagram />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-dark-surface border border-dark-border flex items-center justify-center text-dark-muted hover:text-gold hover:border-gold transition-all">
+              <a href="https://www.facebook.com/share/1AsPUkke3P/?mibextid=wwXIfr" target='_blank' className="w-9 h-9 rounded-full bg-dark-surface border border-dark-border flex items-center justify-center text-dark-muted hover:text-gold hover:border-gold transition-all">
                 <FaFacebookF />
               </a>
             </div>
