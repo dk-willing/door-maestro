@@ -74,4 +74,18 @@ async function initDb({
   }
 }
 
+const employeeSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, default: "employee" },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
+  },
+  { timestamps: { createdAt: "created_at", updatedAt: false } },
+);
+
+const Employee = mongoose.model("Employee", employeeSchema);
+
+module.exports = { initDb, Product, Order, Admin, Setting, Employee };
+
 module.exports = { initDb, Product, Order, Admin, Setting };

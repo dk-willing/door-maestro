@@ -11,6 +11,7 @@ const { createSettingsRoutes } = require("./routes/settingsRoutes");
 const { createProductsRoutes } = require("./routes/productsRoutes");
 const { createOrdersRoutes } = require("./routes/ordersRoutes");
 const { createStatsRoutes } = require("./routes/statsRoutes");
+const { createEmployeeRoutes } = require("./routes/employeeRoutes");
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use(
   "/api/settings",
   createSettingsRoutes({ authMiddleware, emailService }),
 );
+app.use("/api/employees", createEmployeeRoutes({ authMiddleware }));
 app.use("/api/products", createProductsRoutes({ authMiddleware, upload }));
 app.use("/api/orders", createOrdersRoutes({ authMiddleware, emailService }));
 app.use("/api/stats", createStatsRoutes({ authMiddleware }));

@@ -4,6 +4,41 @@ function getToken() {
   return localStorage.getItem("admin_token");
 }
 
+export async function fetchEmployees() {
+  const res = await fetch(`${API}/api/employees`, { headers: authHeaders() });
+  return res.json();
+}
+
+export async function createEmployee(data) {
+  const res = await fetch(`${API}/api/employees`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const d = await res.json();
+    throw new Error(d.error || "Failed");
+  }
+  return res.json();
+}
+
+export async function deleteEmployee(id) {
+  const res = await fetch(`${API}/api/employees/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return res.json();
+}
+
+export async function resetEmployeePassword(id, password) {
+  const res = await fetch(`${API}/api/employees/${id}/password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ password }),
+  });
+  return res.json();
+}
+
 function authHeaders() {
   const token = getToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
