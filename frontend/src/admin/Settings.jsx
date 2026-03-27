@@ -9,6 +9,8 @@ import {
   HiX,
   HiEye,
   HiEyeOff,
+  HiShieldCheck,
+  HiCog,
 } from "react-icons/hi";
 import {
   fetchEmailSettings,
@@ -21,6 +23,91 @@ import {
   resetEmployeePassword,
 } from "../api";
 import toast from "react-hot-toast";
+
+/* ─── tiny reusable atoms ─────────────────────────────────────── */
+
+const Label = ({ children }) => (
+  <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 mb-2">
+    {children}
+  </p>
+);
+
+const Field = ({ label, children }) => (
+  <div>
+    <Label>{label}</Label>
+    {children}
+  </div>
+);
+
+const inputBase =
+  "w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-amber-500/60 focus:ring-2 focus:ring-amber-500/10 transition-all duration-200";
+
+const GoldBtn = ({ children, className = "", ...p }) => (
+  <button
+    {...p}
+    className={`relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold
+      bg-gradient-to-br from-amber-400 to-amber-600 text-zinc-900
+      shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:shadow-[0_0_30px_rgba(251,191,36,0.4)]
+      disabled:opacity-40 disabled:cursor-not-allowed
+      transition-all duration-200 active:scale-[0.98] ${className}`}
+  >
+    {children}
+  </button>
+);
+
+const GhostBtn = ({ children, className = "", ...p }) => (
+  <button
+    {...p}
+    className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium
+      border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100
+      disabled:opacity-40 disabled:cursor-not-allowed
+      transition-all duration-200 active:scale-[0.98] ${className}`}
+  >
+    {children}
+  </button>
+);
+
+/* section card */
+const Card = ({ children, delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 24 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
+    className="relative rounded-2xl border border-zinc-800/80 bg-zinc-900/50 backdrop-blur-sm p-7 overflow-hidden"
+  >
+    {/* subtle corner glow */}
+    <div className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-amber-500/5 blur-2xl" />
+    {children}
+  </motion.div>
+);
+
+const SectionHeader = ({ icon: Icon, title, subtitle }) => (
+  <div className="flex items-center gap-4">
+    <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+      <Icon className="text-amber-400" size={20} />
+    </div>
+    <div>
+      <h2 className="text-zinc-100 font-semibold text-base leading-tight">
+        {title}
+      </h2>
+      <p className="text-zinc-500 text-xs mt-0.5">{subtitle}</p>
+    </div>
+  </div>
+);
+
+/* ─── modals ──────────────────────────────────────────────────── */
+
+function Backdrop({ onClick }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm"
+      onClick={onClick}
+    />
+  );
+}
 
 function AddEmployeeModal({ onClose, onSave }) {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -49,91 +136,101 @@ function AddEmployeeModal({ onClose, onSave }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-dark-card border border-dark-border rounded-2xl p-6 w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-dark-text font-semibold text-lg">
-            Add New Employee
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-dark-muted hover:text-dark-text bg-transparent border-none cursor-pointer"
-          >
-            <HiX size={20} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-              Username
-            </label>
-            <input
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              placeholder="e.g. john_doe"
-              className="w-full bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors"
-            />
+    <>
+      <Backdrop onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: 16 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-auto w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-7 shadow-2xl"
+        >
+          <div className="flex items-center justify-between mb-7">
+            <div>
+              <h3 className="text-zinc-100 font-semibold text-lg">
+                New Employee
+              </h3>
+              <p className="text-zinc-500 text-xs mt-0.5">
+                Create staff login credentials
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+            >
+              <HiX size={18} />
+            </button>
           </div>
-          <div>
-            <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-              Password
-            </label>
-            <div className="relative">
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <Field label="Username">
               <input
-                type={show ? "text" : "password"}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Min. 6 characters"
-                className="w-full bg-dark-surface border border-dark-border rounded-lg px-4 py-3 pr-11 text-dark-text text-sm outline-none focus:border-gold transition-colors"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                placeholder="e.g. john_doe"
+                className={inputBase}
               />
-              <button
-                type="button"
-                onClick={() => setShow((s) => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-muted hover:text-dark-text bg-transparent border-none cursor-pointer"
-              >
-                {show ? <HiEyeOff size={18} /> : <HiEye size={18} />}
-              </button>
-            </div>
-          </div>
+            </Field>
 
-          {/* Credentials preview */}
-          {form.username && form.password && (
-            <div className="bg-dark-surface border border-gold/20 rounded-lg p-4 space-y-1">
-              <p className="text-gold text-xs font-semibold uppercase tracking-wide mb-2">
-                Login Credentials
-              </p>
-              <p className="text-dark-text text-sm">
-                Username:{" "}
-                <span className="text-gold font-medium">{form.username}</span>
-              </p>
-              <p className="text-dark-text text-sm">
-                Password:{" "}
-                <span className="text-gold font-medium">{form.password}</span>
-              </p>
-              <p className="text-dark-muted text-xs mt-2">
-                Share these with the employee to log in.
-              </p>
-            </div>
-          )}
+            <Field label="Password">
+              <div className="relative">
+                <input
+                  type={show ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  placeholder="Min. 6 characters"
+                  className={`${inputBase} pr-12`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShow((s) => !s)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  {show ? <HiEyeOff size={17} /> : <HiEye size={17} />}
+                </button>
+              </div>
+            </Field>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-gold w-full !py-3 text-sm"
-          >
-            {loading ? "Creating..." : "Create Employee Account"}
-          </button>
-        </form>
-      </motion.div>
-    </div>
+            <AnimatePresence>
+              {form.username && form.password && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-1.5 overflow-hidden"
+                >
+                  <p className="text-amber-400 text-[10px] font-bold uppercase tracking-widest mb-3">
+                    Credentials Preview
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400 text-xs">Username</span>
+                    <span className="text-amber-300 text-xs font-mono font-medium">
+                      {form.username}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-400 text-xs">Password</span>
+                    <span className="text-amber-300 text-xs font-mono font-medium">
+                      {form.password}
+                    </span>
+                  </div>
+                  <p className="text-zinc-600 text-[11px] mt-2 pt-2 border-t border-zinc-800">
+                    Share with employee to log in.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <GoldBtn type="submit" disabled={loading} className="w-full !py-3">
+              {loading ? "Creating account…" : "Create Employee Account"}
+            </GoldBtn>
+          </form>
+        </motion.div>
+      </div>
+    </>
   );
 }
 
@@ -160,58 +257,60 @@ function ResetPasswordModal({ employee, onClose, onSave }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-dark-card border border-dark-border rounded-2xl p-6 w-full max-w-sm"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-dark-text font-semibold">Reset Password</h3>
-          <button
-            onClick={onClose}
-            className="text-dark-muted hover:text-dark-text bg-transparent border-none cursor-pointer"
-          >
-            <HiX size={20} />
-          </button>
-        </div>
-        <p className="text-dark-muted text-sm mb-4">
-          Setting new password for{" "}
-          <span className="text-gold font-medium">{employee.username}</span>
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <input
-              type={show ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="New password"
-              className="w-full bg-dark-surface border border-dark-border rounded-lg px-4 py-3 pr-11 text-dark-text text-sm outline-none focus:border-gold transition-colors"
-            />
+    <>
+      <Backdrop onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: 16 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-auto w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-7 shadow-2xl"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-zinc-100 font-semibold">Reset Password</h3>
             <button
-              type="button"
-              onClick={() => setShow((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-muted hover:text-dark-text bg-transparent border-none cursor-pointer"
+              onClick={onClose}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
             >
-              {show ? <HiEyeOff size={18} /> : <HiEye size={18} />}
+              <HiX size={18} />
             </button>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-gold w-full !py-3 text-sm"
-          >
-            {loading ? "Resetting..." : "Reset Password"}
-          </button>
-        </form>
-      </motion.div>
-    </div>
+          <p className="text-zinc-500 text-sm mb-6">
+            New password for{" "}
+            <span className="text-amber-400 font-medium">
+              {employee.username}
+            </span>
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="relative">
+              <input
+                type={show ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="New password (min. 6 chars)"
+                className={`${inputBase} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShow((s) => !s)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                {show ? <HiEyeOff size={17} /> : <HiEye size={17} />}
+              </button>
+            </div>
+            <GoldBtn type="submit" disabled={loading} className="w-full !py-3">
+              {loading ? "Resetting…" : "Reset Password"}
+            </GoldBtn>
+          </form>
+        </motion.div>
+      </div>
+    </>
   );
 }
+
+/* ─── main page ───────────────────────────────────────────────── */
 
 export default function Settings() {
   const [email, setEmail] = useState({
@@ -233,8 +332,12 @@ export default function Settings() {
 
   const loadEmployees = () => {
     fetchEmployees()
-      .then(setEmployees)
-      .catch(() => {});
+      .then((data) =>
+        setEmployees(
+          Array.isArray(data) ? data : (data?.employees ?? data?.data ?? []),
+        ),
+      )
+      .catch(() => setEmployees([]));
   };
 
   useEffect(() => {
@@ -268,7 +371,7 @@ export default function Settings() {
     setTesting(true);
     try {
       await testEmail(email);
-      toast.success("Test email sent successfully!");
+      toast.success("Test email sent!");
     } catch (err) {
       toast.error(err.message);
     }
@@ -303,289 +406,292 @@ export default function Settings() {
     loadEmployees();
   };
 
-  const inputClass =
-    "w-full bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors";
-
   return (
-    <div className="space-y-8 max-w-2xl">
-      <h1 className="text-2xl font-bold text-white">Settings</h1>
-
-      {/* Employee Management */}
+    <div className="max-w-2xl space-y-6">
+      {/* page title */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-dark-card border border-dark-border rounded-xl p-6"
+        transition={{ duration: 0.35 }}
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
-              <HiUserAdd className="text-gold" size={22} />
-            </div>
-            <div>
-              <h2 className="text-dark-text font-semibold">
-                Employee Accounts
-              </h2>
-              <p className="text-dark-muted text-xs">
-                Manage staff login access
-              </p>
-            </div>
-          </div>
-          <button
+        <div className="flex items-center gap-3 mb-1">
+          <HiCog className="text-amber-400" size={22} />
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">
+            Settings
+          </h1>
+        </div>
+        <p className="text-zinc-500 text-sm pl-9">
+          Manage your account, team, and notifications
+        </p>
+      </motion.div>
+
+      {/* ── Employee Accounts ── */}
+      <Card delay={0.05}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <SectionHeader
+            icon={HiUserAdd}
+            title="Employee Accounts"
+            subtitle="Manage staff login access"
+          />
+          <GoldBtn
             onClick={() => setShowAddEmployee(true)}
-            className="btn-gold flex items-center gap-2 !py-2 !px-4 text-sm"
+            className="w-full sm:w-auto sm:shrink-0 sm:self-start"
           >
-            <HiUserAdd size={16} /> Add Employee
-          </button>
+            <HiUserAdd size={15} /> Add Employee
+          </GoldBtn>
         </div>
 
         {employees.length === 0 ? (
-          <p className="text-dark-muted text-sm text-center py-6">
-            No employees added yet.
-          </p>
+          <div className="flex flex-col items-center justify-center py-10 rounded-xl border border-dashed border-zinc-800">
+            <div className="w-12 h-12 rounded-full bg-zinc-800/60 flex items-center justify-center mb-3">
+              <HiUserAdd className="text-zinc-600" size={22} />
+            </div>
+            <p className="text-zinc-500 text-sm">No employees added yet</p>
+            <p className="text-zinc-600 text-xs mt-1">
+              Click "Add Employee" to get started
+            </p>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {employees.map((emp) => (
-              <div
+          <div className="space-y-2">
+            {employees.map((emp, i) => (
+              <motion.div
                 key={emp._id}
-                className="flex items-center justify-between bg-dark-surface border border-dark-border rounded-lg px-4 py-3"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="group flex items-center justify-between rounded-xl border border-zinc-800/80 bg-zinc-900/40 px-4 py-3.5 hover:border-zinc-700 transition-colors"
               >
-                <div>
-                  <p className="text-dark-text text-sm font-medium">
-                    {emp.username}
-                  </p>
-                  <p className="text-dark-muted text-xs">
-                    Added {new Date(emp.created_at).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold uppercase">
+                    {emp.username[0]}
+                  </div>
+                  <div>
+                    <p className="text-zinc-200 text-sm font-medium">
+                      {emp.username}
+                    </p>
+                    <p className="text-zinc-600 text-xs">
+                      Added{" "}
+                      {new Date(emp.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => setResetTarget(emp)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-medium cursor-pointer hover:bg-blue-500/20 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-medium hover:bg-blue-500/20 transition-colors cursor-pointer"
                   >
-                    <HiKey size={14} /> Reset Password
+                    <HiKey size={13} /> Reset
                   </button>
                   <button
                     onClick={() => handleDeleteEmployee(emp._id, emp.username)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-medium cursor-pointer hover:bg-red-500/20 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-medium hover:bg-red-500/20 transition-colors cursor-pointer"
                   >
-                    <HiTrash size={14} /> Remove
+                    <HiTrash size={13} /> Remove
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
-      </motion.div>
+      </Card>
 
-      {/* Email Notifications */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-dark-card border border-dark-border rounded-xl p-6"
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
-            <HiMail className="text-gold" size={22} />
-          </div>
-          <div>
-            <h2 className="text-dark-text font-semibold">
-              Email Notifications
-            </h2>
-            <p className="text-dark-muted text-xs">
-              Receive email alerts when new orders are placed
-            </p>
-          </div>
+      {/* ── Email Notifications ── */}
+      <Card delay={0.1}>
+        <div className="mb-6">
+          <SectionHeader
+            icon={HiMail}
+            title="Email Notifications"
+            subtitle="Receive alerts when new orders are placed"
+          />
         </div>
-        <div className="space-y-4">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <div
-              onClick={() => setEmail({ ...email, enabled: !email.enabled })}
-              className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${email.enabled ? "bg-gold" : "bg-dark-border"}`}
-            >
-              <div
-                className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${email.enabled ? "translate-x-[22px]" : "translate-x-0.5"}`}
-              />
-            </div>
-            <span className="text-dark-text text-sm font-medium">
-              Enable email notifications
-            </span>
-          </label>
 
-          {email.enabled && (
+        {/* toggle */}
+        <label className="flex items-center gap-3 cursor-pointer mb-2 w-fit">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={email.enabled}
+            onClick={() => setEmail({ ...email, enabled: !email.enabled })}
+            className={`relative w-11 h-6 rounded-full transition-all duration-300 focus:outline-none ${email.enabled ? "bg-amber-500 shadow-[0_0_12px_rgba(251,191,36,0.4)]" : "bg-zinc-700"}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 ${email.enabled ? "translate-x-5" : "translate-x-0"}`}
+            />
+          </button>
+          <span className="text-zinc-300 text-sm font-medium">
+            Enable email notifications
+          </span>
+        </label>
+
+        <AnimatePresence>
+          {email.enabled ? (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="space-y-4 pt-2"
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-                    SMTP Host
-                  </label>
-                  <input
-                    value={email.smtpHost}
-                    onChange={(e) =>
-                      setEmail({ ...email, smtpHost: e.target.value })
-                    }
-                    placeholder="smtp.gmail.com"
-                    className={inputClass}
-                  />
+              <div className="space-y-4 pt-5 border-t border-zinc-800 mt-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="SMTP Host">
+                    <input
+                      value={email.smtpHost}
+                      onChange={(e) =>
+                        setEmail({ ...email, smtpHost: e.target.value })
+                      }
+                      placeholder="smtp.gmail.com"
+                      className={inputBase}
+                    />
+                  </Field>
+                  <Field label="SMTP Port">
+                    <input
+                      value={email.smtpPort}
+                      onChange={(e) =>
+                        setEmail({ ...email, smtpPort: e.target.value })
+                      }
+                      placeholder="587"
+                      className={inputBase}
+                    />
+                  </Field>
                 </div>
-                <div>
-                  <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-                    SMTP Port
-                  </label>
+                <Field label="SMTP Username">
                   <input
-                    value={email.smtpPort}
+                    value={email.smtpUser}
                     onChange={(e) =>
-                      setEmail({ ...email, smtpPort: e.target.value })
+                      setEmail({ ...email, smtpUser: e.target.value })
                     }
-                    placeholder="587"
-                    className={inputClass}
+                    placeholder="your@email.com"
+                    className={inputBase}
                   />
-                </div>
-              </div>
-              <div>
-                <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-                  SMTP Username
-                </label>
-                <input
-                  value={email.smtpUser}
-                  onChange={(e) =>
-                    setEmail({ ...email, smtpUser: e.target.value })
-                  }
-                  placeholder="your@email.com"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-                  SMTP Password
-                </label>
-                <input
-                  type="password"
-                  value={email.smtpPass}
-                  onChange={(e) =>
-                    setEmail({ ...email, smtpPass: e.target.value })
-                  }
-                  placeholder="App password or SMTP password"
-                  className={inputClass}
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-                    From Email
-                  </label>
+                </Field>
+                <Field label="SMTP Password">
                   <input
-                    value={email.fromEmail}
+                    type="password"
+                    value={email.smtpPass}
                     onChange={(e) =>
-                      setEmail({ ...email, fromEmail: e.target.value })
+                      setEmail({ ...email, smtpPass: e.target.value })
                     }
-                    placeholder="noreply@doormaestro.com"
-                    className={inputClass}
+                    placeholder="App password or SMTP password"
+                    className={inputBase}
                   />
+                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="From Email">
+                    <input
+                      value={email.fromEmail}
+                      onChange={(e) =>
+                        setEmail({ ...email, fromEmail: e.target.value })
+                      }
+                      placeholder="noreply@yourapp.com"
+                      className={inputBase}
+                    />
+                  </Field>
+                  <Field label="Recipient Email">
+                    <input
+                      value={email.recipientEmail}
+                      onChange={(e) =>
+                        setEmail({ ...email, recipientEmail: e.target.value })
+                      }
+                      placeholder="admin@yourapp.com"
+                      className={inputBase}
+                    />
+                  </Field>
                 </div>
-                <div>
-                  <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-                    Recipient Email
-                  </label>
-                  <input
-                    value={email.recipientEmail}
-                    onChange={(e) =>
-                      setEmail({ ...email, recipientEmail: e.target.value })
-                    }
-                    placeholder="admin@doormaestro.com"
-                    className={inputClass}
-                  />
+                <div className="flex gap-3 pt-1">
+                  <GoldBtn onClick={handleSave} disabled={saving}>
+                    {saving ? "Saving…" : "Save Settings"}
+                  </GoldBtn>
+                  <GhostBtn onClick={handleTest} disabled={testing}>
+                    {testing ? (
+                      "Sending…"
+                    ) : (
+                      <>
+                        <HiCheckCircle size={15} /> Send Test
+                      </>
+                    )}
+                  </GhostBtn>
                 </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="btn-gold !py-2.5 !px-6 text-sm"
-                >
-                  {saving ? "Saving..." : "Save Settings"}
-                </button>
-                <button
-                  onClick={handleTest}
-                  disabled={testing}
-                  className="btn-outline !py-2.5 !px-6 text-sm flex items-center gap-2"
-                >
-                  {testing ? (
-                    "Sending..."
-                  ) : (
-                    <>
-                      <HiCheckCircle size={16} /> Send Test Email
-                    </>
-                  )}
-                </button>
               </div>
             </motion.div>
-          )}
-          {!email.enabled && (
-            <p className="text-dark-muted text-sm">
-              Enable to configure SMTP settings and receive order notifications.
+          ) : (
+            <p className="text-zinc-600 text-sm mt-3">
+              Enable to configure SMTP and receive order notifications.
             </p>
           )}
-        </div>
-      </motion.div>
+        </AnimatePresence>
+      </Card>
 
-      {/* Change Password */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-dark-card border border-dark-border rounded-xl p-6"
-      >
-        <h2 className="text-dark-text font-semibold mb-4">Change Password</h2>
+      {/* ── Change Password ── */}
+      <Card delay={0.15}>
+        <div className="mb-6">
+          <SectionHeader
+            icon={HiShieldCheck}
+            title="Change Password"
+            subtitle="Update your admin account password"
+          />
+        </div>
+
         <form onSubmit={handlePassword} className="space-y-4 max-w-sm">
-          <div>
-            <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-              Current Password
-            </label>
+          <Field label="Current Password">
             <input
               type="password"
               value={pw.current}
               onChange={(e) => setPw({ ...pw, current: e.target.value })}
-              className={inputClass}
+              placeholder="••••••••"
+              className={inputBase}
             />
-          </div>
-          <div>
-            <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-              New Password
-            </label>
+          </Field>
+          <Field label="New Password">
             <input
               type="password"
               value={pw.new}
               onChange={(e) => setPw({ ...pw, new: e.target.value })}
-              className={inputClass}
+              placeholder="••••••••"
+              className={inputBase}
             />
-          </div>
-          <div>
-            <label className="text-dark-muted text-xs font-medium mb-1.5 block">
-              Confirm New Password
-            </label>
+          </Field>
+          <Field label="Confirm New Password">
             <input
               type="password"
               value={pw.confirm}
               onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
-              className={inputClass}
+              placeholder="••••••••"
+              className={inputBase}
             />
-          </div>
-          <button
-            type="submit"
-            disabled={pwLoading}
-            className="btn-gold !py-2.5 !px-6 text-sm"
-          >
-            {pwLoading ? "Updating..." : "Update Password"}
-          </button>
-        </form>
-      </motion.div>
+          </Field>
 
-      {/* Modals */}
+          {/* strength hint */}
+          {pw.new && (
+            <div className="flex gap-1.5">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                    pw.new.length > i * 3
+                      ? pw.new.length < 6
+                        ? "bg-red-500"
+                        : pw.new.length < 10
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
+                      : "bg-zinc-800"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          <GoldBtn type="submit" disabled={pwLoading}>
+            {pwLoading ? "Updating…" : "Update Password"}
+          </GoldBtn>
+        </form>
+      </Card>
+
+      {/* ── Modals ── */}
       <AnimatePresence>
         {showAddEmployee && (
           <AddEmployeeModal

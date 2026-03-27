@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API = "http://localhost:3001";
 
 function getToken() {
   return localStorage.getItem("admin_token");
