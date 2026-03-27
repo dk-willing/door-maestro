@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { Employee } = require("../db");
+const { Employee } = require("../db/index");
 
 function createEmployeeRoutes({ authMiddleware }) {
   const router = express.Router();
@@ -39,6 +39,7 @@ function createEmployeeRoutes({ authMiddleware }) {
 
       res.json({ id: employee._id, username: employee.username });
     } catch (err) {
+      console.error("Create employee error:", err); // add this
       res.status(500).json({ error: "Failed to create employee" });
     }
   });

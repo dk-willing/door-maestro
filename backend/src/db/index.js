@@ -87,5 +87,3 @@ const employeeSchema = new mongoose.Schema(
 const Employee = mongoose.model("Employee", employeeSchema);
 
 module.exports = { initDb, Product, Order, Admin, Setting, Employee };
-
-module.exports = { initDb, Product, Order, Admin, Setting };
