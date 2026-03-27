@@ -89,9 +89,12 @@ export default function OrderModal({ product, quantity, onClose }) {
           <div className="bg-dark-surface rounded-lg p-4 mb-6">
             <p className="text-dark-text font-medium">{product.name}</p>
             <p className="text-dark-muted text-sm">
-              Qty: {quantity} &middot; Total: $
+              Qty: {quantity} &middot; Total: ₵
               {(product.price * quantity).toLocaleString()}
             </p>
+            <small className="text-gold text-xs font-medium tracking-wide mt-1 block">
+              🎁 Orders above 5 units get amazing discounts!
+            </small>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
