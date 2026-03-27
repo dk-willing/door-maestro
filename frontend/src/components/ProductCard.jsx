@@ -36,7 +36,7 @@ export default function ProductCard({ product }) {
         <div className="flex items-center justify-between">
           <span className="text-gold font-bold text-xl">${Number(product.price).toLocaleString()}</span>
           <Link
-            to={`/doors/${product.id}`}
+            to={`/doors/${product._id}`}
             className="btn-outline !py-2 !px-4 text-sm"
           >
             View Details
