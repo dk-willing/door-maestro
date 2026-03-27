@@ -109,21 +109,21 @@ export default function Contact() {
                 type="text"
                 placeholder="Your Name"
                 required
-                className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors"
+                className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-[16px] md:text-sm outline-none focus:border-gold transition-colors"
               />
               <input
                 name="phone"
                 type="tel"
                 placeholder="Phone Number"
                 required
-                className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors"
+                className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-[16px] md:text-sm outline-none focus:border-gold transition-colors"
               />
               <textarea
                 name="message"
                 placeholder="Your Message"
                 rows={4}
                 required
-                className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors resize-none"
+                className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-[16px] md:text-sm outline-none focus:border-gold transition-colors resize-none"
               />
               <button
                 type="submit"

@@ -75,7 +75,7 @@ export default function ProductDetail() {
                 {inStock ? 'In Stock' : 'Out of Stock'}
               </span>
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{product.name}</h1>
-              <p className="text-gold text-3xl font-bold">${Number(product.price).toLocaleString()}</p>
+              <p className="text-gold text-3xl font-bold">₵{Number(product.price).toLocaleString()}</p>
             </div>
 
             {product.description && (
@@ -123,7 +123,6 @@ export default function ProductDetail() {
             <div className="grid grid-cols-3 gap-4 pt-4">
               {[
                 { icon: HiShieldCheck, label: 'Secure Purchase' },
-                { icon: HiClock, label: '2-Year Warranty' },
                 { icon: HiBadgeCheck, label: 'Premium Quality' },
               ].map((t, i) => (
                 <div key={i} className="text-center">

@@ -39,7 +39,7 @@ export default function ProductCard({ product }) {
             to={`/doors/${product._id}`}
             className="btn-outline !py-2 !px-4 text-sm"
           >
-            View Details
+            Order Now
           </Link>
         </div>
       </div>

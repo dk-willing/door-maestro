@@ -17,21 +17,21 @@ export default function OrderModal({ product, quantity, onClose }) {
     }
 
     const msg = encodeURIComponent(
-  `🚪 *DOOR MAESTRO — NEW ORDER*\n` +
-  `━━━━━━━━━━━━━━━━━━━━━\n\n` +
-  `📦 *Product Details*\n` +
-  `› Name: ${product.name}\n` +
-  `› Quantity: ${quantity} unit${quantity > 1 ? 's' : ''}\n` +
-  `› Unit Price: $${Number(product.price).toLocaleString()}\n` +
-  `› *Total: $${(product.price * quantity).toLocaleString()}*\n\n` +
-  `━━━━━━━━━━━━━━━━━━━━━\n` +
-  `👤 *Customer Details*\n` +
-  `› Name: ${form.name}\n` +
-  `› Phone: ${form.phone}\n` +
-  (form.note ? `› Note: ${form.note}\n` : '') +
-  `━━━━━━━━━━━━━━━━━━━━━\n\n` +
-  `_Sent via Door Maestro Store_ ✨`
-)
+      `🚪 *DOOR MAESTRO — NEW ORDER*\n` +
+        `━━━━━━━━━━━━━━━━━\n\n` +
+        `📦 *Product Details*\n` +
+        `› Name: ${product.name}\n` +
+        `› Quantity: ${quantity} unit${quantity > 1 ? "s" : ""}\n` +
+        `› Unit Price: $${Number(product.price).toLocaleString()}\n` +
+        `› *Total: $${(product.price * quantity).toLocaleString()}*\n\n` +
+        `━━━━━━━━━━━━━━━━━\n` +
+        `👤 *Customer Details*\n` +
+        `› Name: ${form.name}\n` +
+        `› Phone: ${form.phone}\n` +
+        (form.note ? `› Note: ${form.note}\n` : "") +
+        `━━━━━━━━━━━━━━━━━\n\n` +
+        `_Sent via Door Maestro Store_ ✨`,
+    );
 
     // Open the window immediately (before any await) so mobile doesn't block it
     const waWindow = window.open(
@@ -100,21 +100,21 @@ export default function OrderModal({ product, quantity, onClose }) {
               placeholder="Your Name *"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors"
+              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-[16px] md:text-sm outline-none focus:border-gold transition-colors"
             />
             <input
               type="tel"
               placeholder="Phone Number *"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors"
+              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-[16px] md:text-sm outline-none focus:border-gold transition-colors"
             />
             <textarea
               placeholder="Additional notes (optional)"
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
               rows={3}
-              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-sm outline-none focus:border-gold transition-colors resize-none"
+              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text text-[16px] md:text-sm outline-none focus:border-gold transition-colors resize-none"
             />
             <button
               type="submit"
