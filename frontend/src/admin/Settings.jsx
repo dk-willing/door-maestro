@@ -231,18 +231,18 @@ export default function Settings() {
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [resetTarget, setResetTarget] = useState(null);
 
+  const loadEmployees = () => {
+    fetchEmployees()
+      .then(setEmployees)
+      .catch(() => {});
+  };
+
   useEffect(() => {
     fetchEmailSettings()
       .then(setEmail)
       .catch(() => {});
     loadEmployees();
   }, []);
-
-  const loadEmployees = () => {
-    fetchEmployees()
-      .then(setEmployees)
-      .catch(() => {});
-  };
 
   const handleSave = async () => {
     setSaving(true);
