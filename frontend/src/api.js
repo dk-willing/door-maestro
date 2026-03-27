@@ -1,4 +1,4 @@
-const API = "http://localhost:3001";
+const API = "https://door-maestro-backend.vercel.app";
 
 function getToken() {
   return localStorage.getItem("admin_token");
