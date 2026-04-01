@@ -22,8 +22,8 @@ export default function OrderModal({ product, quantity, onClose }) {
         `📦 *Product Details*\n` +
         `› Name: ${product.name}\n` +
         `› Quantity: ${quantity} unit${quantity > 1 ? "s" : ""}\n` +
-        `› Unit Price: $${Number(product.price).toLocaleString()}\n` +
-        `› *Total: $${(product.price * quantity).toLocaleString()}*\n\n` +
+        `› Unit Price: GHS${Number(product.price).toLocaleString()}\n` +
+        `› *Total: GHS${(product.price * quantity).toLocaleString()}*\n\n` +
         `━━━━━━━━━━━━━━━━━\n` +
         `👤 *Customer Details*\n` +
         `› Name: ${form.name}\n` +
